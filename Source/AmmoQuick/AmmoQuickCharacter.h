@@ -92,6 +92,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ammo)
 	int32 clipSize = 5;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ammo)
+	float recoilRate = -1.25f;
+
 protected:
 	
 	/** Fires a projectile. */

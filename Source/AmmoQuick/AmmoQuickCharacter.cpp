@@ -172,6 +172,7 @@ void AAmmoQuickCharacter::OnFire()
 					// spawn the projectile at the muzzle
 					World->SpawnActor<AAmmoQuickProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
 				}
+				AddControllerPitchInput(recoilRate);
 			}
 		}
 
