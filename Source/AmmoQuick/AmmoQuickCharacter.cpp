@@ -193,6 +193,10 @@ void AAmmoQuickCharacter::OnFire()
 		}
 
 		--clip;
+		if (!clip)
+		{
+			ReloadClip();
+		}
 	}
 	else
 	{
