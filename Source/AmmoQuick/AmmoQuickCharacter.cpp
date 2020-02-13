@@ -143,6 +143,20 @@ void AAmmoQuickCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AAmmoQuickCharacter::LookUpAtRate);
 }
 
+int32 AAmmoQuickCharacter::PickupAmmo(int32 Capacity)
+{
+	if (ammo + Capacity <= maxAmmo)
+	{
+		ammo += Capacity;
+		if (clip < clipSize)
+		{
+			ReloadClip();
+		}
+		return 1;
+	}
+	return 0;
+}
+
 void AAmmoQuickCharacter::OnFire()
 {
 	if (clip)

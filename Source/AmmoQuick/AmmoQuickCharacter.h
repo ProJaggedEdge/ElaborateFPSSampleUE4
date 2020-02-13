@@ -95,6 +95,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ammo)
 	float recoilRate = -1.25f;
 
+	UFUNCTION()
+	int32 PickupAmmo(int32 Capacity);
+
 protected:
 	
 	/** Fires a projectile. */
