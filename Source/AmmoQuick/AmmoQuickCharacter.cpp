@@ -11,6 +11,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
+#include "Runtime/Engine/Public/TimerManager.h"
+#include "Runtime/Engine/Classes/GameFramework/CharacterMovementComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -84,6 +86,15 @@ AAmmoQuickCharacter::AAmmoQuickCharacter()
 	//bUsingMotionControllers = true;
 	clip = clipSize;
 	ammo = maxAmmo;
+	JumpHeight = 600.f;
+
+	WalkSpeed = 600.f;
+	SprintSpeed = 1000.f;
+
+	bCanWarp = true;
+	WarpDistance = 6000.f;
+	WarpCooldown = 1.f;
+	WarpStop = 0.1f;
 }
 
 void AAmmoQuickCharacter::BeginPlay()
@@ -116,8 +127,15 @@ void AAmmoQuickCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 	check(PlayerInputComponent);
 
 	// Bind jump events
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AAmmoQuickCharacter::DoubleJump);
+	//PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+
+	// Bind sprint events
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AAmmoQuickCharacter::Sprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AAmmoQuickCharacter::Walk);
+
+	// Bind Warp event
+	PlayerInputComponent->BindAction("Warp", IE_Pressed, this, &AAmmoQuickCharacter::Warp);
 
 	// Bind fire event
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AAmmoQuickCharacter::OnFire);
@@ -142,6 +160,54 @@ void AAmmoQuickCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AAmmoQuickCharacter::LookUpAtRate);
 }
+
+void AAmmoQuickCharacter::DoubleJump()
+{
+	if (DoubleJumpCounter <= 1)
+	{
+		ACharacter::LaunchCharacter(FVector(0.f, 0.f, JumpHeight), false, true);
+		DoubleJumpCounter++;
+	}
+}
+
+void AAmmoQuickCharacter::Landed(const FHitResult& Hit)
+{
+	DoubleJumpCounter = 0;
+}
+
+void AAmmoQuickCharacter::Sprint()
+{
+	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+}
+
+void AAmmoQuickCharacter::Walk()
+{
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+}
+
+void AAmmoQuickCharacter::Warp()
+{
+	if (bCanWarp)
+	{
+		GetCharacterMovement()->BrakingFrictionFactor = 0.f;
+		ACharacter::LaunchCharacter(FVector(FirstPersonCameraComponent->GetForwardVector().X, FirstPersonCameraComponent->GetForwardVector().Y, 0.f).GetSafeNormal() * WarpDistance, true, true);
+		bCanWarp = false;
+		GetWorldTimerManager().SetTimer(WarpHandle, this, &AAmmoQuickCharacter::StopWarp, WarpStop, false);
+	}
+}
+
+void AAmmoQuickCharacter::StopWarp()
+{
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->BrakingFrictionFactor = 2.f;
+	GetWorldTimerManager().SetTimer(WarpHandle, this, &AAmmoQuickCharacter::ResetWarp, WarpCooldown, false);
+}
+
+void AAmmoQuickCharacter::ResetWarp()
+{
+	bCanWarp = true;
+}
+
 
 int32 AAmmoQuickCharacter::PickupAmmo(int32 Capacity)
 {

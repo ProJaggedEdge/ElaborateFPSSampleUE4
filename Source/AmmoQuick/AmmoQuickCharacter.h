@@ -98,6 +98,53 @@ public:
 	UFUNCTION()
 	int32 PickupAmmo(int32 Capacity);
 
+	UFUNCTION()
+	void DoubleJump();
+
+	UPROPERTY()
+	int DoubleJumpCounter;
+	// Initialised to 0 by default
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float JumpHeight;
+
+
+	UFUNCTION()
+	void Warp();
+
+	UFUNCTION()
+	void StopWarp();
+
+	UFUNCTION()
+	void ResetWarp();
+
+	UPROPERTY(EditAnywhere)
+	float WarpDistance;
+
+	UPROPERTY(EditAnywhere)
+	float WarpCooldown;
+
+	UPROPERTY()
+	bool bCanWarp;
+
+	UPROPERTY(EditAnywhere)
+	float WarpStop;
+
+	UPROPERTY()
+	FTimerHandle WarpHandle;
+
+	UFUNCTION()
+	void Sprint();
+
+	UFUNCTION()
+	void Walk();
+
+	UPROPERTY(EditAnywhere)
+	float SprintSpeed;
+
+	UPROPERTY(EditAnywhere)
+	float WalkSpeed;
+
 protected:
 	
 	/** Fires a projectile. */
@@ -126,6 +173,9 @@ protected:
 	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
 	 */
 	void LookUpAtRate(float Rate);
+	
+	UFUNCTION()
+	virtual void Landed(const FHitResult& Hit) override;
 
 	struct TouchData
 	{
