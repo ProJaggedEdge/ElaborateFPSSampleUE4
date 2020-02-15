@@ -6,7 +6,8 @@
 #include "Kismet/GameplayStatics.h" 
 #include "Particles/ParticleSystemComponent.h" 
 #include "UObject/ConstructorHelpers.h"
-#include "Engine.h"
+#include "Sound/SoundCue.h" 
+//#include "Engine.h"
 
 AAmmoQuickProjectile::AAmmoQuickProjectile() 
 {
@@ -41,10 +42,10 @@ AAmmoQuickProjectile::AAmmoQuickProjectile()
 	{
 		ExplosionParticles = ExplosionParticleObj.Object;
 	}
-	else
+	/*else
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("No Particles")));
-	}
+	}*/
 
 	// Set the Explosion Sound
 	static ConstructorHelpers::FObjectFinder<USoundCue> ExplosionSoundObj(TEXT("/Game/StarterContent/Audio/Explosion_Cue"));
@@ -52,10 +53,10 @@ AAmmoQuickProjectile::AAmmoQuickProjectile()
 	{
 		ExplosionSound = ExplosionSoundObj.Object;
 	}
-	else
+	/*else
 	{
 		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, FString::Printf(TEXT("No Sound")));
-	}
+	}*/
 }
 
 void AAmmoQuickProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)

@@ -1,4 +1,4 @@
-# AmmoQuick
+# ElaborateFPSSampleUE4
 
 Developed with Unreal Engine 4.24
 Some enhancements on the Sample FPS Project provided by Unreal Engine
@@ -11,9 +11,15 @@ Available Features:
 	Explosive Shots
 	Double Jump
 	Warp to Focused Area(Left Alt)
-	Sprint(Left Shift + Movement)
+	Sprint(Left Shift + Forward Movement)
+	Fully Automatic Shots with Fixed Fire Rate
 
 Todo:
-	Switchable Fire Modes(Fully Auto, Burst, Buckshot, Single Shot)
-	Reload Sound+Animation
 	Stamina System
+	Fuel System
+	Fuel Pickups + Sound
+	Switchable Fire Modes(b/w Fully Automatic, Burst, Buckshot, Single Shot)
+	Reload Sound+Animation
+	Sprint Animation
+	Dash
+	Ammo Pickup Sound

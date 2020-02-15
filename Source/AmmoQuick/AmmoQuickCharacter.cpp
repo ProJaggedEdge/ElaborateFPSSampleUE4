@@ -13,6 +13,7 @@
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "Runtime/Engine/Public/TimerManager.h"
 #include "Runtime/Engine/Classes/GameFramework/CharacterMovementComponent.h"
+#include "Engine.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -84,17 +85,27 @@ AAmmoQuickCharacter::AAmmoQuickCharacter()
 
 	// Uncomment the following line to turn motion controllers on by default:
 	//bUsingMotionControllers = true;
-	clip = clipSize;
-	ammo = maxAmmo;
-	JumpHeight = 600.f;
 
+	clipSize = 10;
+	maxAmmo = 30;
+	
+	recoilRate = -1.75f;
+	FireRate = .75f;
+	
+	MaxStamina = 100.f;
 	WalkSpeed = 600.f;
 	SprintSpeed = 1000.f;
-
+	
+	JumpHeight = 600.f;
+	
 	bCanWarp = true;
 	WarpDistance = 6000.f;
 	WarpCooldown = 1.f;
 	WarpStop = 0.1f;
+
+	clip = clipSize;
+	ammo = maxAmmo;
+	Stamina = MaxStamina;
 }
 
 void AAmmoQuickCharacter::BeginPlay()
@@ -138,7 +149,8 @@ void AAmmoQuickCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 	PlayerInputComponent->BindAction("Warp", IE_Pressed, this, &AAmmoQuickCharacter::Warp);
 
 	// Bind fire event
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AAmmoQuickCharacter::OnFire);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AAmmoQuickCharacter::AutoFire);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AAmmoQuickCharacter::StopAutoFire);
 	
 	// Bind Reload Event
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AAmmoQuickCharacter::ReloadClip);
@@ -177,7 +189,30 @@ void AAmmoQuickCharacter::Landed(const FHitResult& Hit)
 
 void AAmmoQuickCharacter::Sprint()
 {
-	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+	if (IsPlayerMovingForward())
+	{
+		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+	}
+}
+
+bool AAmmoQuickCharacter::IsPlayerMovingForward()
+{
+	FVector Vel = GetVelocity();
+	
+	FVector Forward = GetActorForwardVector();
+	int ForwardSpeed = FVector::DotProduct(Vel, Forward);
+
+	// FVector Right = GetActorRightVector();
+	// int RightSpeed = FVector::DotProduct(Vel, Right);
+
+	GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, FString::Printf(TEXT("Forward Speed: %d"), ForwardSpeed));
+
+	// if (RightSpeed == 0 && ForwardSpeed > 0)
+	if (ForwardSpeed > 0.f)
+	{
+		return true;
+	}
+	return false;
 }
 
 void AAmmoQuickCharacter::Walk()
@@ -221,6 +256,16 @@ int32 AAmmoQuickCharacter::PickupAmmo(int32 Capacity)
 		return 1;
 	}
 	return 0;
+}
+
+void AAmmoQuickCharacter::AutoFire()
+{
+	GetWorldTimerManager().SetTimer(AutoFireHandle, this, &AAmmoQuickCharacter::OnFire, FireRate, true, 0.f);
+}
+
+void AAmmoQuickCharacter::StopAutoFire()
+{
+	GetWorldTimerManager().ClearTimer(AutoFireHandle);
 }
 
 void AAmmoQuickCharacter::OnFire()
@@ -299,6 +344,7 @@ void AAmmoQuickCharacter::ReloadClip()
 			clip += ammo;
 			ammo = 0;
 		}
+		StopAutoFire();
 	}
 }
 

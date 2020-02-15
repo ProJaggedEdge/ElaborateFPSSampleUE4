@@ -84,19 +84,32 @@ public:
 	int32 ammo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ammo)
-	int32 maxAmmo = 20;
+	int32 maxAmmo;
 
 	UPROPERTY(EditDefaultsOnly, Category = Ammo)
 	int32 clip;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ammo)
-	int32 clipSize = 5;
+	int32 clipSize;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ammo)
-	float recoilRate = -1.25f;
+	float recoilRate;
 
 	UFUNCTION()
 	int32 PickupAmmo(int32 Capacity);
+
+	UFUNCTION()
+	void AutoFire();
+	
+	UFUNCTION()
+	void StopAutoFire();
+
+	UPROPERTY()
+	float FireRate;
+
+	UPROPERTY()
+	FTimerHandle AutoFireHandle;
+
 
 	UFUNCTION()
 	void DoubleJump();
@@ -133,17 +146,27 @@ public:
 	UPROPERTY()
 	FTimerHandle WarpHandle;
 
+
 	UFUNCTION()
 	void Sprint();
 
 	UFUNCTION()
 	void Walk();
 
+	UFUNCTION()
+	bool IsPlayerMovingForward();
+
 	UPROPERTY(EditAnywhere)
 	float SprintSpeed;
 
 	UPROPERTY(EditAnywhere)
 	float WalkSpeed;
+
+	UPROPERTY(EditAnywhere)
+	float MaxStamina;
+
+	UPROPERTY()
+	float Stamina;
 
 protected:
 	
