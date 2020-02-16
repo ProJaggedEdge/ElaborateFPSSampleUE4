@@ -97,7 +97,7 @@ public:
 	float recoilRate;
 
 	UFUNCTION()
-	int32 PickupAmmo(int32 Capacity);
+	bool PickupAmmo(int32 Capacity);
 
 
 	UFUNCTION()
@@ -207,6 +207,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float DoubleJumpFuelConsumption;
+
+	UFUNCTION()
+	bool PickupFuel(float Capacity);
 
 protected:
 	

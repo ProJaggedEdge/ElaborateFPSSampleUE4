@@ -296,7 +296,7 @@ void AAmmoQuickCharacter::ResetWarp()
 }
 
 
-int32 AAmmoQuickCharacter::PickupAmmo(int32 Capacity)
+bool AAmmoQuickCharacter::PickupAmmo(int32 Capacity)
 {
 	if (ammo + Capacity <= maxAmmo)
 	{
@@ -305,9 +305,19 @@ int32 AAmmoQuickCharacter::PickupAmmo(int32 Capacity)
 		{
 			ReloadClip();
 		}
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
+}
+
+bool AAmmoQuickCharacter::PickupFuel(float Capacity)
+{
+	if (Fuel + Capacity <= MaxFuel)
+	{
+		Fuel += Capacity;
+		return true;
+	}
+	return false;
 }
 
 void AAmmoQuickCharacter::AutoFire()

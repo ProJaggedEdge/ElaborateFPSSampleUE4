@@ -15,9 +15,9 @@ Available Features:
 	Fully Automatic Shots with Fixed Fire Rate
 	Stamina System
 	Fuel System(for Double Jump and Warp)
+	Fuel auto Pickups
 
 Todo:
-	Fuel Pickups
 	Fuel Pickup Sound
 	Ammo Pickup Sound
 	Fuel Consumption Sound
