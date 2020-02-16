@@ -153,6 +153,34 @@ public:
 
 
 	UFUNCTION()
+	void Dash();
+
+	UPROPERTY(EditAnywhere)
+	float DashDistance;
+
+	UPROPERTY(EditAnywhere)
+	float DashCooldown;
+
+	UPROPERTY()
+	bool bCanDash;
+
+	UPROPERTY()
+	FTimerHandle DashHandle;
+
+	UFUNCTION()
+	void ResetDash();
+
+	/*UFUNCTION()
+	void StopDash();
+
+	UFUNCTION()
+	void ResetDash();
+
+	UPROPERTY(EditAnywhere)
+	float DashDuration;*/
+
+
+	UFUNCTION()
 	void Sprint();
 
 	UFUNCTION()
@@ -189,6 +217,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	float StaminaRecoveryMagnitude;
 
+	UPROPERTY(EditAnywhere)
+	float DashStaminaUsage;
+
 	UFUNCTION()
 	void SprintingStamina();
 
@@ -196,7 +227,7 @@ public:
 	void RecoveringStamina();
 
 	UPROPERTY()
-	FTimerHandle SprintHandle;
+	FTimerHandle StaminaHandle;
 
 
 	UPROPERTY(EditAnywhere)

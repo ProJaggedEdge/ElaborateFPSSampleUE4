@@ -10,15 +10,15 @@ Available Features:
 	Shooting Recoil
 	Explosive Shots
 	Double Jump
-	Warp to Focused Area(Left Alt)
+	Warp to Focused Area(E)
 	Sprint(Left Shift + Forward Movement)
 	Fully Automatic Shots with Fixed Fire Rate
 	Stamina System
 	Fuel System(for Double Jump and Warp)
 	Fuel auto Pickups
+	Dash(Left Alt + Movement)
 
 Todo:
 	Switchable Fire Modes(Fully Automatic, Burst, Buckshot, Single Shot)
-	Dash
 	Sprint Animation
 	Reload Animation

@@ -15,7 +15,7 @@
 #include "Runtime/Engine/Classes/GameFramework/CharacterMovementComponent.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Sound/SoundCue.h"
-// #include "Engine.h"
+#include "Engine.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -132,6 +132,11 @@ AAmmoQuickCharacter::AAmmoQuickCharacter()
 	DoubleJumpFuelConsumption = 5.f;
 	WarpFuelConsumption = 10.f;
 
+	bCanDash = true;
+	DashCooldown = .6f;
+	DashDistance = 3000.f;
+	DashStaminaUsage = 20.f;
+
 	clip = clipSize;
 	ammo = maxAmmo;
 	Stamina = MaxStamina;
@@ -175,6 +180,9 @@ void AAmmoQuickCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AAmmoQuickCharacter::Sprint);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AAmmoQuickCharacter::Walk);
 
+	// Bind dash event
+	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &AAmmoQuickCharacter::Dash);
+
 	// Bind Warp event
 	PlayerInputComponent->BindAction("Warp", IE_Pressed, this, &AAmmoQuickCharacter::Warp);
 
@@ -217,11 +225,16 @@ void AAmmoQuickCharacter::DoubleJump()
 		}
 		ACharacter::LaunchCharacter(FVector(0.f, 0.f, JumpHeight), false, true);
 		DoubleJumpCounter++;
+		bCanDash = false;
 	}
 }
 
 void AAmmoQuickCharacter::Landed(const FHitResult& Hit)
 {
+	if (DoubleJumpCounter)
+	{
+		bCanDash = true;
+	}
 	DoubleJumpCounter = 0;
 }
 
@@ -249,8 +262,8 @@ void AAmmoQuickCharacter::Sprint()
 	if (IsPlayerMovingForward() && DoubleJumpCounter == 0)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
-		GetWorldTimerManager().ClearTimer(SprintHandle);
-		GetWorldTimerManager().SetTimer(SprintHandle, this, &AAmmoQuickCharacter::SprintingStamina, SprintStaminaRate, true);
+		GetWorldTimerManager().ClearTimer(StaminaHandle);
+		GetWorldTimerManager().SetTimer(StaminaHandle, this, &AAmmoQuickCharacter::SprintingStamina, SprintStaminaRate, true);
 		bSprinting = true;
 	}
 }
@@ -272,8 +285,8 @@ void AAmmoQuickCharacter::Walk()
 	if (bSprinting)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-		GetWorldTimerManager().ClearTimer(SprintHandle);
-		GetWorldTimerManager().SetTimer(SprintHandle, this, &AAmmoQuickCharacter::RecoveringStamina, StaminaRecoveryRate, true);
+		GetWorldTimerManager().ClearTimer(StaminaHandle);
+		GetWorldTimerManager().SetTimer(StaminaHandle, this, &AAmmoQuickCharacter::RecoveringStamina, StaminaRecoveryRate, true);
 		bSprinting = false;
 	}
 }
@@ -286,22 +299,47 @@ void AAmmoQuickCharacter::RecoveringStamina()
 	}
 	else
 	{
-		GetWorldTimerManager().ClearTimer(SprintHandle);
+		GetWorldTimerManager().ClearTimer(StaminaHandle);
 	}
+}
+
+void AAmmoQuickCharacter::Dash()
+{
+	if (bCanDash && Stamina >= DashStaminaUsage)
+	{
+		FVector Vel = GetVelocity();
+		
+		ACharacter::LaunchCharacter(FVector(Vel.X, Vel.Y, 0.f).GetSafeNormal() * DashDistance, true, false);
+		
+		bCanDash = false;
+		Stamina -= DashStaminaUsage;
+		GetWorldTimerManager().SetTimer(DashHandle, this, &AAmmoQuickCharacter::ResetDash, DashCooldown, false);
+	}
+}
+
+void AAmmoQuickCharacter::ResetDash()
+{
+	bCanDash = true;
+	GetWorldTimerManager().SetTimer(StaminaHandle, this, &AAmmoQuickCharacter::RecoveringStamina, StaminaRecoveryRate, true);
 }
 
 void AAmmoQuickCharacter::Warp()
 {
 	if (bCanWarp && Fuel >= WarpFuelConsumption)
 	{
+		FVector CameraForward = FirstPersonCameraComponent->GetForwardVector();
 		GetCharacterMovement()->BrakingFrictionFactor = 0.f;
-		ACharacter::LaunchCharacter(FVector(FirstPersonCameraComponent->GetForwardVector().X, FirstPersonCameraComponent->GetForwardVector().Y, 0.f).GetSafeNormal() * WarpDistance, true, true);
+		
+		ACharacter::LaunchCharacter(FVector(CameraForward.X, CameraForward.Y, 0.f).GetSafeNormal() * WarpDistance, true, false);
+		
 		GetWorldTimerManager().SetTimer(WarpHandle, this, &AAmmoQuickCharacter::StopWarp, WarpStop, false);
 		Fuel -= WarpFuelConsumption;
+		
 		if (FuelUseSound)
 		{
 			UGameplayStatics::PlaySoundAtLocation(GetWorld(), FuelUseSound, GetActorLocation());
 		}
+		
 		bCanWarp = false;
 	}
 }
