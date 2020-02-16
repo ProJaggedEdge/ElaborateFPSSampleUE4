@@ -13,13 +13,16 @@ Available Features:
 	Warp to Focused Area(Left Alt)
 	Sprint(Left Shift + Forward Movement)
 	Fully Automatic Shots with Fixed Fire Rate
+	Stamina System
+	Fuel System(for Double Jump and Warp)
 
 Todo:
-	Stamina System
-	Fuel System
-	Fuel Pickups + Sound
-	Switchable Fire Modes(b/w Fully Automatic, Burst, Buckshot, Single Shot)
-	Reload Sound+Animation
+	Fuel Pickups
+	Fuel Pickup Sound
+	Ammo Pickup Sound
+	Fuel Consumption Sound
+	Reload Sound
+	Switchable Fire Modes(Fully Automatic, Burst, Buckshot, Single Shot)
+	Reload Animation
 	Sprint Animation
 	Dash
-	Ammo Pickup Sound

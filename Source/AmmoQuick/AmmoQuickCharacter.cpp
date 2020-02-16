@@ -13,7 +13,7 @@
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "Runtime/Engine/Public/TimerManager.h"
 #include "Runtime/Engine/Classes/GameFramework/CharacterMovementComponent.h"
-#include "Engine.h"
+// #include "Engine.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -92,10 +92,20 @@ AAmmoQuickCharacter::AAmmoQuickCharacter()
 	recoilRate = -1.75f;
 	FireRate = .75f;
 	
-	MaxStamina = 100.f;
 	WalkSpeed = 600.f;
 	SprintSpeed = 1000.f;
 	
+
+	MaxStamina = 100.f;
+	
+	SprintStaminaRate = .2f;
+	SprintStaminaUsage = 5.f;
+	bSprinting = false;
+	
+	StaminaRecoveryRate = .4f;
+	StaminaRecoveryMagnitude = 10.f;
+	
+
 	JumpHeight = 600.f;
 	
 	bCanWarp = true;
@@ -103,9 +113,14 @@ AAmmoQuickCharacter::AAmmoQuickCharacter()
 	WarpCooldown = 1.f;
 	WarpStop = 0.1f;
 
+	MaxFuel = 50.f;
+	DoubleJumpFuelConsumption = 5.f;
+	WarpFuelConsumption = 10.f;
+
 	clip = clipSize;
 	ammo = maxAmmo;
 	Stamina = MaxStamina;
+	Fuel = MaxFuel;
 }
 
 void AAmmoQuickCharacter::BeginPlay()
@@ -175,8 +190,12 @@ void AAmmoQuickCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 
 void AAmmoQuickCharacter::DoubleJump()
 {
-	if (DoubleJumpCounter <= 1)
+	if (DoubleJumpCounter == 0 || (DoubleJumpCounter == 1 && Fuel >= DoubleJumpFuelConsumption))
 	{
+		if (DoubleJumpCounter == 1)
+		{
+			Fuel -= DoubleJumpFuelConsumption;
+		}
 		ACharacter::LaunchCharacter(FVector(0.f, 0.f, JumpHeight), false, true);
 		DoubleJumpCounter++;
 	}
@@ -185,14 +204,6 @@ void AAmmoQuickCharacter::DoubleJump()
 void AAmmoQuickCharacter::Landed(const FHitResult& Hit)
 {
 	DoubleJumpCounter = 0;
-}
-
-void AAmmoQuickCharacter::Sprint()
-{
-	if (IsPlayerMovingForward())
-	{
-		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
-	}
 }
 
 bool AAmmoQuickCharacter::IsPlayerMovingForward()
@@ -204,9 +215,7 @@ bool AAmmoQuickCharacter::IsPlayerMovingForward()
 
 	// FVector Right = GetActorRightVector();
 	// int RightSpeed = FVector::DotProduct(Vel, Right);
-
-	GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, FString::Printf(TEXT("Forward Speed: %d"), ForwardSpeed));
-
+	
 	// if (RightSpeed == 0 && ForwardSpeed > 0)
 	if (ForwardSpeed > 0.f)
 	{
@@ -215,19 +224,62 @@ bool AAmmoQuickCharacter::IsPlayerMovingForward()
 	return false;
 }
 
+void AAmmoQuickCharacter::Sprint()
+{
+	// if(!bSprinting)
+	if (IsPlayerMovingForward() && DoubleJumpCounter == 0)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+		GetWorldTimerManager().ClearTimer(SprintHandle);
+		GetWorldTimerManager().SetTimer(SprintHandle, this, &AAmmoQuickCharacter::SprintingStamina, SprintStaminaRate, true);
+		bSprinting = true;
+	}
+}
+
+void AAmmoQuickCharacter::SprintingStamina()
+{
+	if (Stamina >= SprintStaminaUsage)
+	{
+		Stamina -= SprintStaminaUsage;
+	}
+	else
+	{
+		Walk();
+	}
+}
+
 void AAmmoQuickCharacter::Walk()
 {
-	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	if (bSprinting)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+		GetWorldTimerManager().ClearTimer(SprintHandle);
+		GetWorldTimerManager().SetTimer(SprintHandle, this, &AAmmoQuickCharacter::RecoveringStamina, StaminaRecoveryRate, true);
+		bSprinting = false;
+	}
+}
+
+void AAmmoQuickCharacter::RecoveringStamina()
+{
+	if (Stamina < MaxStamina)
+	{
+		Stamina += StaminaRecoveryMagnitude;
+	}
+	else
+	{
+		GetWorldTimerManager().ClearTimer(SprintHandle);
+	}
 }
 
 void AAmmoQuickCharacter::Warp()
 {
-	if (bCanWarp)
+	if (bCanWarp && Fuel >= WarpFuelConsumption)
 	{
 		GetCharacterMovement()->BrakingFrictionFactor = 0.f;
 		ACharacter::LaunchCharacter(FVector(FirstPersonCameraComponent->GetForwardVector().X, FirstPersonCameraComponent->GetForwardVector().Y, 0.f).GetSafeNormal() * WarpDistance, true, true);
-		bCanWarp = false;
 		GetWorldTimerManager().SetTimer(WarpHandle, this, &AAmmoQuickCharacter::StopWarp, WarpStop, false);
+		Fuel -= WarpFuelConsumption;
+		bCanWarp = false;
 	}
 }
 
@@ -423,6 +475,10 @@ void AAmmoQuickCharacter::MoveForward(float Value)
 		// add movement in that direction
 		AddMovementInput(GetActorForwardVector(), Value);
 	}
+	else
+	{
+		Walk();
+	}
 }
 
 void AAmmoQuickCharacter::MoveRight(float Value)
@@ -431,6 +487,7 @@ void AAmmoQuickCharacter::MoveRight(float Value)
 	{
 		// add movement in that direction
 		AddMovementInput(GetActorRightVector(), Value);
+		Walk();
 	}
 }
 
@@ -465,3 +522,14 @@ FString AAmmoQuickCharacter::GetAmmoString()
 {
 	return FString::FromInt(clip) + FString(TEXT(" | ")) + FString::FromInt(ammo);
 }
+
+float AAmmoQuickCharacter::GetStaminaProgress()
+{
+	return Stamina / MaxStamina; 
+}
+
+float AAmmoQuickCharacter::GetFuelProgress()
+{
+	return Fuel / MaxFuel;
+}
+

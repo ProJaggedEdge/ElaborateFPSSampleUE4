@@ -80,6 +80,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint32 bUsingMotionControllers : 1;
 
+
 	UPROPERTY(EditDefaultsOnly, Category = Ammo)
 	int32 ammo;
 
@@ -97,6 +98,7 @@ public:
 
 	UFUNCTION()
 	int32 PickupAmmo(int32 Capacity);
+
 
 	UFUNCTION()
 	void AutoFire();
@@ -162,11 +164,49 @@ public:
 	UPROPERTY(EditAnywhere)
 	float WalkSpeed;
 
+	
 	UPROPERTY(EditAnywhere)
 	float MaxStamina;
 
 	UPROPERTY()
 	float Stamina;
+
+	UPROPERTY()
+	bool bSprinting;
+
+	UPROPERTY()
+	float SprintStaminaRate;
+
+	UPROPERTY(EditAnywhere)
+	float SprintStaminaUsage;
+
+	UPROPERTY()
+	float StaminaRecoveryRate;
+
+	UPROPERTY(EditAnywhere)
+	float StaminaRecoveryMagnitude;
+
+	UFUNCTION()
+	void SprintingStamina();
+
+	UFUNCTION()
+	void RecoveringStamina();
+
+	UPROPERTY()
+	FTimerHandle SprintHandle;
+
+
+	UPROPERTY(EditAnywhere)
+	float MaxFuel;
+
+	UPROPERTY()
+	float Fuel;
+
+	UPROPERTY(EditAnywhere)
+	float WarpFuelConsumption;
+
+	UPROPERTY(EditAnywhere)
+	float DoubleJumpFuelConsumption;
 
 protected:
 	
@@ -231,6 +271,14 @@ public:
 	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
 	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+	
+	/** Returns Current Stamina Progress **/
+	UFUNCTION(BlueprintCallable)
+	float GetStaminaProgress();
+
+	/** Returns Current Fuel Progress **/
+	UFUNCTION(BlueprintCallable)
+	float GetFuelProgress();
 
 	UFUNCTION(BlueprintCallable)
 	FString GetAmmoString();
