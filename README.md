@@ -1,7 +1,7 @@
 # ElaborateFPSSampleUE4
 
 Developed with Unreal Engine 4.24
-Some enhancements on the Sample FPS Project provided by Unreal Engine
+Some enhancements and tweaks on the Sample FPS Project provided by Unreal Engine
 
 Available Features:
 	Ammo and Clip System
@@ -18,11 +18,7 @@ Available Features:
 	Fuel auto Pickups
 
 Todo:
-	Fuel Pickup Sound
-	Ammo Pickup Sound
-	Fuel Consumption Sound
-	Reload Sound
 	Switchable Fire Modes(Fully Automatic, Burst, Buckshot, Single Shot)
-	Reload Animation
-	Sprint Animation
 	Dash
+	Sprint Animation
+	Reload Animation

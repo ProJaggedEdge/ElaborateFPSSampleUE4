@@ -25,6 +25,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	int32 Capacity;
 
+	UPROPERTY(EditAnywhere)
+	class USoundBase* TriggerSound;
+
 	UFUNCTION()
 	void TriggerEnter(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 

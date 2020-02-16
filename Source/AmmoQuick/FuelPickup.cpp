@@ -4,6 +4,9 @@
 #include "Components/StaticMeshComponent.h"
 #include "AmmoQuickCharacter.h"
 #include "FuelPickup.h"
+#include "UObject/ConstructorHelpers.h"
+#include "Sound/SoundCue.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AFuelPickup::AFuelPickup()
@@ -21,6 +24,12 @@ AFuelPickup::AFuelPickup()
 	SM_TBox->SetRelativeLocation(FVector(6.29847f, 1.248687f, -31.998362f));
 	SM_TBox->SetRelativeScale3D(FVector(1.f, 1.f, .6f));
 	SM_TBox->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+
+	static ConstructorHelpers::FObjectFinder<USoundCue> PickupSoundObj(TEXT("/Game/FirstPerson/Audio/FuelPickup_Cue"));
+	if (PickupSoundObj.Succeeded())
+	{
+		TriggerSound = PickupSoundObj.Object;
+	}
 }
 
 void AFuelPickup::TriggerEnter(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
@@ -31,6 +40,10 @@ void AFuelPickup::TriggerEnter(UPrimitiveComponent * OverlappedComponent, AActor
 	{
 		if (MyPlayerCharacter->PickupFuel(Capacity))
 		{
+			if (TriggerSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), TriggerSound, GetActorLocation());
+			}
 			Destroy();
 		}
 	}

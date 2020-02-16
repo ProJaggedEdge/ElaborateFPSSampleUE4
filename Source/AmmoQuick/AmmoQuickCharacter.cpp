@@ -13,6 +13,8 @@
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "Runtime/Engine/Public/TimerManager.h"
 #include "Runtime/Engine/Classes/GameFramework/CharacterMovementComponent.h"
+#include "UObject/ConstructorHelpers.h"
+#include "Sound/SoundCue.h"
 // #include "Engine.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -85,6 +87,19 @@ AAmmoQuickCharacter::AAmmoQuickCharacter()
 
 	// Uncomment the following line to turn motion controllers on by default:
 	//bUsingMotionControllers = true;
+
+	static ConstructorHelpers::FObjectFinder<USoundCue> ReloadSoundObj(TEXT("/Game/FirstPerson/Audio/Reload_Cue"));
+	if (ReloadSoundObj.Succeeded())
+	{
+		ReloadSound = ReloadSoundObj.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundCue> FuelUseSoundObj(TEXT("/Game/FirstPerson/Audio/FuelUse_Cue"));
+	if (FuelUseSoundObj.Succeeded())
+	{
+		FuelUseSound = FuelUseSoundObj.Object;
+	}
+
 
 	clipSize = 10;
 	maxAmmo = 30;
@@ -195,6 +210,10 @@ void AAmmoQuickCharacter::DoubleJump()
 		if (DoubleJumpCounter == 1)
 		{
 			Fuel -= DoubleJumpFuelConsumption;
+			if (FuelUseSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), FuelUseSound, GetActorLocation());
+			}
 		}
 		ACharacter::LaunchCharacter(FVector(0.f, 0.f, JumpHeight), false, true);
 		DoubleJumpCounter++;
@@ -279,6 +298,10 @@ void AAmmoQuickCharacter::Warp()
 		ACharacter::LaunchCharacter(FVector(FirstPersonCameraComponent->GetForwardVector().X, FirstPersonCameraComponent->GetForwardVector().Y, 0.f).GetSafeNormal() * WarpDistance, true, true);
 		GetWorldTimerManager().SetTimer(WarpHandle, this, &AAmmoQuickCharacter::StopWarp, WarpStop, false);
 		Fuel -= WarpFuelConsumption;
+		if (FuelUseSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), FuelUseSound, GetActorLocation());
+		}
 		bCanWarp = false;
 	}
 }
@@ -407,6 +430,11 @@ void AAmmoQuickCharacter::ReloadClip()
 			ammo = 0;
 		}
 		StopAutoFire();
+		
+		if (ReloadSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), ReloadSound, GetActorLocation());
+		}
 	}
 }
 

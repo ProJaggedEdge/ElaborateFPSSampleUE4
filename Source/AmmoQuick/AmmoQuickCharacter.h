@@ -99,6 +99,9 @@ public:
 	UFUNCTION()
 	bool PickupAmmo(int32 Capacity);
 
+	UPROPERTY(EditAnywhere)
+	class USoundBase* ReloadSound;
+
 
 	UFUNCTION()
 	void AutoFire();
@@ -210,6 +213,9 @@ public:
 
 	UFUNCTION()
 	bool PickupFuel(float Capacity);
+
+	UPROPERTY(EditAnywhere)
+	class USoundBase* FuelUseSound;
 
 protected:
 	

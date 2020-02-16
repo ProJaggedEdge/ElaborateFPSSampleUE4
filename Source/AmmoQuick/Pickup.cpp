@@ -4,6 +4,9 @@
 #include "Components/StaticMeshComponent.h"
 #include "AmmoQuickCharacter.h"
 #include "Pickup.h"
+#include "UObject/ConstructorHelpers.h"
+#include "Sound/SoundCue.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 APickup::APickup()
@@ -20,6 +23,12 @@ APickup::APickup()
 	SM_TBox = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Box Mesh"));
 	SM_TBox->SetRelativeLocation(FVector(-19.029924f, -23.391632f, -30.001059f));
 	SM_TBox->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
+
+	static ConstructorHelpers::FObjectFinder<USoundCue> PickupSoundObj(TEXT("/Game/FirstPerson/Audio/AmmoPickup_Cue"));
+	if (PickupSoundObj.Succeeded())
+	{
+		TriggerSound = PickupSoundObj.Object;
+	}
 }
 
 void APickup::TriggerEnter(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
@@ -30,6 +39,10 @@ void APickup::TriggerEnter(UPrimitiveComponent * OverlappedComponent, AActor * O
 	{
 		if (MyPlayerCharacter->PickupAmmo(Capacity))
 		{
+			if (TriggerSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), TriggerSound, GetActorLocation());
+			}
 			Destroy();
 		}
 	}
