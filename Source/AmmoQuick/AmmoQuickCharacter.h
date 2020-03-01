@@ -49,7 +49,9 @@ public:
 	AAmmoQuickCharacter();
 
 protected:
-	virtual void BeginPlay();
+	virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaTime) override;
 
 public:
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
@@ -220,6 +222,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	float DashStaminaUsage;
 
+	UPROPERTY()
+	float StaminaLeft;
+
 	UFUNCTION()
 	void SprintingStamina();
 
@@ -241,6 +246,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float DoubleJumpFuelConsumption;
+
+	UPROPERTY()
+	float FuelLeft;
 
 	UFUNCTION()
 	bool PickupFuel(float Capacity);

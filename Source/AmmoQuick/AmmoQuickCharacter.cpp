@@ -9,13 +9,14 @@
 #include "GameFramework/InputSettings.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "Runtime/Engine/Public/TimerManager.h"
 #include "Runtime/Engine/Classes/GameFramework/CharacterMovementComponent.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Sound/SoundCue.h"
-#include "Engine.h"
+//#include "Engine.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -24,6 +25,8 @@ DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
 AAmmoQuickCharacter::AAmmoQuickCharacter()
 {
+	PrimaryActorTick.bCanEverTick = true;
+
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
 
@@ -141,6 +144,9 @@ AAmmoQuickCharacter::AAmmoQuickCharacter()
 	ammo = maxAmmo;
 	Stamina = MaxStamina;
 	Fuel = MaxFuel;
+
+	StaminaLeft = Stamina;
+	FuelLeft = Fuel;
 }
 
 void AAmmoQuickCharacter::BeginPlay()
@@ -217,7 +223,7 @@ void AAmmoQuickCharacter::DoubleJump()
 	{
 		if (DoubleJumpCounter == 1)
 		{
-			Fuel -= DoubleJumpFuelConsumption;
+			FuelLeft -= DoubleJumpFuelConsumption;
 			if (FuelUseSound)
 			{
 				UGameplayStatics::PlaySoundAtLocation(GetWorld(), FuelUseSound, GetActorLocation());
@@ -270,9 +276,9 @@ void AAmmoQuickCharacter::Sprint()
 
 void AAmmoQuickCharacter::SprintingStamina()
 {
-	if (Stamina >= SprintStaminaUsage)
+	if (StaminaLeft >= SprintStaminaUsage)
 	{
-		Stamina -= SprintStaminaUsage;
+		StaminaLeft -= SprintStaminaUsage;
 	}
 	else
 	{
@@ -293,9 +299,9 @@ void AAmmoQuickCharacter::Walk()
 
 void AAmmoQuickCharacter::RecoveringStamina()
 {
-	if (Stamina < MaxStamina)
+	if (StaminaLeft < MaxStamina)
 	{
-		Stamina += StaminaRecoveryMagnitude;
+		StaminaLeft += StaminaRecoveryMagnitude;
 	}
 	else
 	{
@@ -305,14 +311,14 @@ void AAmmoQuickCharacter::RecoveringStamina()
 
 void AAmmoQuickCharacter::Dash()
 {
-	if (bCanDash && Stamina >= DashStaminaUsage)
+	if (bCanDash && StaminaLeft >= DashStaminaUsage)
 	{
 		FVector Vel = GetVelocity();
 		
 		ACharacter::LaunchCharacter(FVector(Vel.X, Vel.Y, 0.f).GetSafeNormal() * DashDistance, true, false);
 		
 		bCanDash = false;
-		Stamina -= DashStaminaUsage;
+		StaminaLeft -= DashStaminaUsage;
 		GetWorldTimerManager().SetTimer(DashHandle, this, &AAmmoQuickCharacter::ResetDash, DashCooldown, false);
 	}
 }
@@ -325,7 +331,7 @@ void AAmmoQuickCharacter::ResetDash()
 
 void AAmmoQuickCharacter::Warp()
 {
-	if (bCanWarp && Fuel >= WarpFuelConsumption)
+	if (bCanWarp && FuelLeft >= WarpFuelConsumption)
 	{
 		FVector CameraForward = FirstPersonCameraComponent->GetForwardVector();
 		GetCharacterMovement()->BrakingFrictionFactor = 0.f;
@@ -333,7 +339,7 @@ void AAmmoQuickCharacter::Warp()
 		ACharacter::LaunchCharacter(FVector(CameraForward.X, CameraForward.Y, 0.f).GetSafeNormal() * WarpDistance, true, false);
 		
 		GetWorldTimerManager().SetTimer(WarpHandle, this, &AAmmoQuickCharacter::StopWarp, WarpStop, false);
-		Fuel -= WarpFuelConsumption;
+		FuelLeft -= WarpFuelConsumption;
 		
 		if (FuelUseSound)
 		{
@@ -373,9 +379,9 @@ bool AAmmoQuickCharacter::PickupAmmo(int32 Capacity)
 
 bool AAmmoQuickCharacter::PickupFuel(float Capacity)
 {
-	if (Fuel + Capacity <= MaxFuel)
+	if (FuelLeft + Capacity <= MaxFuel)
 	{
-		Fuel += Capacity;
+		FuelLeft += Capacity;
 		return true;
 	}
 	return false;
@@ -609,3 +615,19 @@ float AAmmoQuickCharacter::GetFuelProgress()
 	return Fuel / MaxFuel;
 }
 
+void AAmmoQuickCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (StaminaLeft != Stamina)
+	{
+		float StaminaChange = FMath::Abs(StaminaLeft - Stamina) * DeltaTime;
+		Stamina = FMath::Lerp(Stamina, StaminaLeft, StaminaChange);
+	}
+
+	if (FuelLeft != Fuel)
+	{
+		float FuelChange = FMath::Abs(FuelLeft - Fuel) * DeltaTime;
+		Fuel = FMath::Lerp(Fuel, FuelLeft, FuelChange);
+	}
+}
