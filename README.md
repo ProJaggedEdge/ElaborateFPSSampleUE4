@@ -3,11 +3,12 @@
 Developed with Unreal Engine 4.24.2\
 Some enhancements and tweaks on the Sample FPS Project provided by Unreal Engine\
 
-Available Features:\
-	Ammo and Clip System:\
-		Clip Size and Ammo fixed on Start\
-		Auto-reload when Firing w/ an empty clip\
-		Ammo auto Pickups, with auto-reload\
+Available Features:
+	
+	Ammo and Clip System:
+		Clip Size and Ammo fixed on Start
+		Auto-reload when Firing w/ an empty clip
+		Ammo auto Pickups, with auto-reload
 	
 	Reload(R Button):
 		Sound Effect
