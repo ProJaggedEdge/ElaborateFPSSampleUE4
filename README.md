@@ -48,8 +48,10 @@ Available Features:
 	Dash(Left Alt + Movement):
 		Allows for Swift Movement when adding Left Alt to movement in any direction
 
-Todo:\
-	Sprint Animation\
-	Reload Animation\
-	Switchable Fire Modes(Fully Automatic, Burst, Buckshot, Single Shot)\
+Todo:
+	
+	Zoom-Hold Aim
+	Sprint Animation
+	Reload Animation
+	Switchable Fire Modes(Fully Automatic, Burst, Buckshot, Single Shot)
 	Lock-On Fire Mode
